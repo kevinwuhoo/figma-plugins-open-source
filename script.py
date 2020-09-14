@@ -4,7 +4,7 @@ import requests
 from operator import itemgetter
 from tabulate import tabulate
 
-FIGMA_PLUGINS_URL = "https://www.figma.com/api/plugins/top?page_size=1000&org_id=null"
+FIGMA_PLUGINS_URL = "https://www.figma.com/api/plugins/browse?sort_by=installs&tag=&user_id=&sort_order=desc&resource_type=plugins&page_size=5000"
 
 GITHUB_URL_REGEX = r"(?:https://github.com/[\w-]+/[\w-]+)"
 BITBUCKET_URL_REGEX = r"(?:https://bitbucket.org/[\w-]+/[\w-]+)"
@@ -18,7 +18,7 @@ open("./plugins.json", "w").write(r.text)
 # r = json.load(open("./plugins.json"))
 
 plugins = []
-for plugin in r.json()["meta"]:
+for plugin in r.json()["meta"]["plugins"]:
     m = OPEN_SOURCE_REGEX.search(str(plugin))
     if not m:
         continue
