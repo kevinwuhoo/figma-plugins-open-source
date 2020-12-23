@@ -4,7 +4,7 @@ import requests
 from operator import itemgetter
 from tabulate import tabulate
 
-FIGMA_PLUGINS_URL = "https://www.figma.com/api/plugins/browse?sort_by=installs&tag=&user_id=&sort_order=desc&resource_type=plugins&page_size=5000"
+FIGMA_PLUGINS_URL = "https://www.figma.com/api/plugins/browse?sort_by=installs&tag=&user_id=&sort_order=desc&resource_type=plugins&org_id=&page_size=25"
 
 GITHUB_URL_REGEX = r"(?:https://github.com/[\w-]+/[\w-]+)"
 BITBUCKET_URL_REGEX = r"(?:https://bitbucket.org/[\w-]+/[\w-]+)"
@@ -13,12 +13,21 @@ URL_REGEXES = "|".join([GITHUB_URL_REGEX, BITBUCKET_URL_REGEX, GITLAB_URL_REGEX]
 OPEN_SOURCE_REGEX = re.compile(f"({URL_REGEXES})")
 
 r = requests.get(FIGMA_PLUGINS_URL)
+response = r.json()
+figma_plugins = response["meta"]["plugins"]
+
+# while there's a next page, collect the plugins found until there are no more pages
+while "next_page" in response["pagination"]:
+    next_page_url = response["pagination"]["next_page"]
+    r = requests.get(next_page_url)
+    response = r.json()
+    figma_plugins.extend(response["meta"]["plugins"])
 
 open("./plugins.json", "w").write(r.text)
 # r = json.load(open("./plugins.json"))
 
 plugins = []
-for plugin in r.json()["meta"]["plugins"]:
+for plugin in figma_plugins:
     m = OPEN_SOURCE_REGEX.search(str(plugin))
     if not m:
         continue
